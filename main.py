@@ -8,14 +8,17 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from email.utils import formataddr
 import os
+from dotenv import load_dotenv
 from datetime import datetime
 
 url = "https://tophub.today/"
 fliter_keywords = ['微博', '知乎', '百度', '微信', '虎扑社区']
 
-EMAIL_SEMDER = '732843374@qq.com'
-EMAIL_PASSWORD = 'aiunwzrdaekmbcih'
-EMAIL_RECEIVER = '2809750987@qq.com'
+load_dotenv()
+
+EMAIL_SEMDER = os.environ.get('EMAIL_SEMDER')
+EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD') 
+EMAIL_RECEIVER = os.environ.get('EMAIL_RECEIVER')
 
 def crawl_data():
     headers = {
@@ -57,26 +60,6 @@ def crawl_data():
     except Exception as e:
         print(f"解析页面时发生错误: {e}")
         return None
-
-def send_email(data_list):
-    if not all([EMAIL_SEMDER, EMAIL_PASSWORD, EMAIL_RECEIVER]):
-        print("错误：环境变量 EMAIL_SEMDER, EMAIL_PASSWORD, EMAIL_RECEIVER 未设置完整。")
-        return
-
-    # 邮件服务器配置 (以QQ邮箱为例)
-    smtp_server = "smtp.qq.com"  # 请根据你的发件邮箱修改
-    smtp_port = 465
-
-    crawl_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-
-    # 构造邮件
-    msg = MIMEMultipart('alternative')
-    msg['From'] = formataddr(('今日热榜，请查收', EMAIL_SEMDER))
-    msg['To'] = formataddr(('社会主义接班人', EMAIL_RECEIVER))
-    msg['Subject'] = Header(f"今日热榜 - {crawl_time}", 'utf-8')
-
-    
-    python
 # main.py
 
 def send_email(data_list):
