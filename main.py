@@ -16,7 +16,7 @@ fliter_keywords = ['微博', '知乎', '百度', '微信', '虎扑社区']
 
 load_dotenv()
 
-EMAIL_SEMDER = os.environ.get('EMAIL_SEMDER')
+EMAIL_SENDER = os.environ.get('EMAIL_SENDER')
 EMAIL_PASSWORD = os.environ.get('EMAIL_PASSWORD') 
 EMAIL_RECEIVER = os.environ.get('EMAIL_RECEIVER')
 
@@ -63,8 +63,8 @@ def crawl_data():
 # main.py
 
 def send_email(data_list):
-    if not all([EMAIL_SEMDER, EMAIL_PASSWORD, EMAIL_RECEIVER]):
-        print("错误：环境变量 EMAIL_SEMDER, EMAIL_PASSWORD, EMAIL_RECEIVER 未设置完整。")
+    if not all([EMAIL_SENDER, EMAIL_PASSWORD, EMAIL_RECEIVER]):
+        print("错误：环境变量 EMAIL_SENDER, EMAIL_PASSWORD, EMAIL_RECEIVER 未设置完整。")
         return
 
     smtp_server = "smtp.qq.com"
@@ -72,7 +72,7 @@ def send_email(data_list):
     crawl_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     msg = MIMEMultipart('alternative')
-    msg['From'] = formataddr(('今日热榜，请查收', EMAIL_SEMDER))
+    msg['From'] = formataddr(('今日热榜，请查收', EMAIL_SENDER))
     msg['To'] = formataddr(('社会主义接班人', EMAIL_RECEIVER))
     msg['Subject'] = Header(f"今日热榜 - {crawl_time}", 'utf-8')
 
@@ -337,8 +337,8 @@ def send_email(data_list):
     # 发送邮件
     try:
         server = smtplib.SMTP_SSL(smtp_server, smtp_port)
-        server.login(EMAIL_SEMDER, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_SEMDER, [EMAIL_RECEIVER], msg.as_string())
+        server.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        server.sendmail(EMAIL_SENDER, [EMAIL_RECEIVER], msg.as_string())
         print("邮件发送成功！")
     except Exception as e:
         print(f"邮件发送失败: {e}")
