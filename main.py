@@ -138,6 +138,13 @@ def send_email(data_list):
     if not all([EMAIL_SENDER, EMAIL_PASSWORD, EMAIL_RECEIVER]):
         print("错误：环境变量 EMAIL_SENDER, EMAIL_PASSWORD, EMAIL_RECEIVER 未设置完整。")
         return
+    
+    # 解析多个收件人
+    EMAIL_RECEIVER_LIST = [email.strip() for email in EMAIL_RECEIVER.split(',') if email.strip()]
+    
+    if not EMAIL_RECEIVER_LIST:
+        print("错误：未设置有效的收件人地址。")
+        return
 
     smtp_server = "smtp.qq.com"
     smtp_port = 465
@@ -145,7 +152,7 @@ def send_email(data_list):
 
     msg = MIMEMultipart('alternative')
     msg['From'] = formataddr(('今日热榜', EMAIL_SENDER))
-    msg['To'] = formataddr(('社会主义接班人', EMAIL_RECEIVER))
+    msg['To'] = ', '.join(EMAIL_RECEIVER_LIST)
     msg['Subject'] = Header(f"您有一条新消息，请注意查收", 'utf-8')
 
     news_html = ""
@@ -183,20 +190,18 @@ def send_email(data_list):
             <title>今日热榜</title>
             <style type="text/css">
                 * {{ margin: 0; padding: 0;box-sizing: border-box; }}
-                a {
-                    text-decoration: none;
-                    outline: none;
-                    -webkit-tap-highlight-color: transparent;
-                }
+                a,
                 a:link,
                 a:visited,
                 a:hover,
                 a:active,
-                a:focus {
+                a:focus {{
                     outline: 0;
                     background-color: transparent;
                     text-decoration: none;
-                }
+                    -webkit-tap-highlight-color:rgba(0,0,0,0);
+                    -webkit-tap-highlight-color: transparent;
+                }}
                 ::-webkit-scrollbar {{ width: 6px; }}
                 ::-webkit-scrollbar-track {{ background: #ffffff; border-radius: 3px; }}
                 ::-webkit-scrollbar-thumb {{ background: #f1f5f9; border-radius: 3px; }}
@@ -382,8 +387,10 @@ def send_email(data_list):
     try:
         server = smtplib.SMTP_SSL(smtp_server, smtp_port)
         server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        server.sendmail(EMAIL_SENDER, [EMAIL_RECEIVER], msg.as_string())
-        print("邮件发送成功！")
+        server.sendmail(EMAIL_SENDER, EMAIL_RECEIVER_LIST, msg.as_string())
+        print(f"邮件发送成功！共发送给 {len(EMAIL_RECEIVER_LIST)} 个收件人")
+        for receiver in EMAIL_RECEIVER_LIST:
+            print(f"  ✓ {receiver}")
     except Exception as e:
         print(f"邮件发送失败: {e}")
     finally:
