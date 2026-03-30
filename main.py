@@ -171,7 +171,10 @@ def send_email(data_list):
             news_html += f"""
             <div class="block">
                 <input type="radio" name="tab" id="tab-{idx+1}"" {"checked" if idx == 0 else ""}>
-                <label class="tab-button" for="tab-{idx+1}">🔥 {item['title']}</label>
+                <label class="tab-button" for="tab-{idx+1}">
+                    <div class="button-text">🔥 {item['title']}</div>
+                    <span>共{len(item['list'])}条</span>
+                </label>
                 <div class="content">
                     <div class="list">
                         {list_html}
@@ -234,62 +237,8 @@ def send_email(data_list):
                     position: relative;
                     width: calc(100% - 20px);
                 }}
-                .block {{
-                    width: 180px;
-                    background-color: #f1f5f9;
-                    padding: 0 15px 10px;
-                }}
-                .block:first-child {{
-                    padding-top: 20px;
-                    border-radius: 12px 12px 0 0;
-                }}
-                .block:last-child {{
-                    padding-bottom: 20px;
-                    border-radius: 0 0 12px 12px;
-                }}
                 .block input {{
                     display: none;
-                }}
-                .tab-button {{
-                    display: flex;
-                    align-items: center;
-                    padding: 12px 20px;
-                    font-size: 14px;
-                    font-weight: 500;
-                    color: #667eea;
-                    background-color: rgba(102, 126, 234, 0.15);
-                    border-radius: 8px;
-                    cursor: pointer;
-                    touch-action: manipulation;
-                    -webkit-tap-highlight-color:rgba(0,0,0,0);
-                    -webkit-tap-highlight-color: transparent;
-                    transition: background-color 0.3s, color 0.3s;
-                }}
-                .content {{
-                    position: absolute;
-                    display: none;
-                    width: calc(100% - 200px);
-                    height: 100%;
-                    background-color: #ffffff;
-                    border-radius: 12px;
-                    margin-left: 20px;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-                    overflow: hidden;
-                    top: 0;
-                    right: 0;
-                    padding: 20px;
-                }}
-                .list {{
-                    height: 100%;
-                    overflow-y: auto;
-                    padding-right: 6px;
-                }}
-                [id^="tab"]:checked~label {{
-                    background-color: #667eea;
-                    color: #ffffff;
-                }}
-                [id^="tab"]:checked~.content {{
-                    display: block;
                 }}
                 .news {{
                     display: flex;
@@ -299,9 +248,6 @@ def send_email(data_list):
                     color: #2d3748;
                     font-size: 13px;
                     overflow: hidden;
-                }}
-                .news:not(:last-child) {{
-                    margin-bottom: 15px;
                 }}
                 .news-sort {{
                     width: 22px;
@@ -327,6 +273,37 @@ def send_email(data_list):
                     font-size: 11px;
                     text-align: right;
                 }}
+                .block {{
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                    overflow: hidden;
+                    padding: 20px;
+                }}
+                .block:not(:first-child) {{
+                    margin-top: 20px;
+                }}
+                .tab-button {{
+                    display: flex;
+                    align-items: center;
+                    padding-bottom: 20px;
+                    font-size: 16px;
+                    font-weight: 600;
+                }}
+                .tab-button .button-text {{
+                    flex: 1;
+                }}
+                .tab-button span {{
+                    color: #94a3b8;
+                    font-size: 12px;
+                }}
+                .news {{
+                    border-top: 1px solid #f1f5f9;
+                    padding: 10px 0;
+                }}
+                .news:not(:last-child) {{
+                    margin: 0;
+                }}
                 /* 移动端适配 */
                 @media only screen and (max-width: 768px) {{
                     .body {{
@@ -338,21 +315,69 @@ def send_email(data_list):
                     .block {{
                         padding: 0 5px 10px;
                         width: 100px;
+                        background-color: #f1f5f9;
+                        border-radius: 0;
+                        box-shadow: none;
+                        margin-top: 0 !important;
                     }}
                     .block:first-child {{
                         padding-top: 10px;
+                        border-radius: 12px 12px 0 0;
                     }}
                     .block:last-child {{
                         padding-bottom: 10px;
-                    }}
-                    .content {{
-                        margin-left: 10px;
-                        width: calc(100% - 110px);
-                        padding: 10px 5px;
+                        border-radius: 0 0 12px 12px;
                     }}
                     .tab-button {{
+                        display: flex;
+                        align-items: center;
                         padding: 10px 5px;
                         font-size: 11px;
+                        font-weight: 500;
+                        color: #667eea;
+                        background-color: rgba(102, 126, 234, 0.15);
+                        border-radius: 8px;
+                        cursor: pointer;
+                        touch-action: manipulation;
+                        -webkit-tap-highlight-color:rgba(0,0,0,0);
+                        -webkit-tap-highlight-color: transparent;
+                        transition: background-color 0.3s, color 0.3s;
+                    }}
+                    .tab-button span {{
+                        display: none;
+                    }}
+                    .content {{
+                        position: absolute;
+                        display: none;
+                        width: calc(100% - 110px);
+                        height: 100%;
+                        background-color: #ffffff;
+                        border-radius: 12px;
+                        margin-left: 10px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                        overflow: hidden;
+                        top: 0;
+                        right: 0;
+                        padding: 10px 5px;
+                    }}
+                    .list {{
+                        height: 100%;
+                        overflow-y: auto;
+                        padding-right: 6px;
+                    }}
+                    [id^="tab"]:checked~label {{
+                        background-color: #667eea;
+                        color: #ffffff;
+                    }}
+                    [id^="tab"]:checked~.content {{
+                        display: block;
+                    }}
+                    .news {{
+                        border: none;
+                        padding: 0;
+                    }}
+                    .news:not(:last-child) {{
+                        margin-bottom: 15px;
                     }}
                     .news-sort {{
                         width: 18px;
