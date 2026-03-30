@@ -260,6 +260,9 @@ def send_email(data_list):
                     background-color: rgba(102, 126, 234, 0.15);
                     border-radius: 8px;
                     cursor: pointer;
+                    touch-action: manipulation;
+                    -webkit-tap-highlight-color:rgba(0,0,0,0);
+                    -webkit-tap-highlight-color: transparent;
                     transition: background-color 0.3s, color 0.3s;
                 }}
                 .content {{
