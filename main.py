@@ -102,9 +102,9 @@ def send_email(data_list):
   crawl_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
   msg = MIMEMultipart("alternative")
-  msg["From"] = formataddr(("今日热榜", EMAIL_SENDER))
+  msg["From"] = formataddr(("今日新闻热榜", EMAIL_SENDER))
   msg["To"] = ", ".join(EMAIL_RECEIVER_LIST)
-  msg["Subject"] = Header(f"您有一条新消息，请注意查收", "utf-8")
+  msg["Subject"] = Header(f"快点来看看今天有哪些大事发生了吧", "utf-8")
 
   news_html = ""
   if data_list:
@@ -346,13 +346,13 @@ def send_email(data_list):
     <body>
       <div class="app"> 
         <div class="header">
-          <h1 style="color: #ffffff; font-size: 24px;">📰 今日热榜</h1>
+          <h1 style="color: #ffffff; font-size: 24px;">📰 今日新闻热榜</h1>
           <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-top: 8px;">{crawl_time}</p>
         </div>
         <div class="body">{news_html}</div>
         <div class="footer">
           <p style="color: #a0aec0; font-size: 11px; line-height: 1.6;">每天7:00、13:00、20:00定时推送</p>
-          <p style="margin-top: 6px; color: #718096; font-size: 10px;">© 以上内容仅供参考</p>
+          <p style="margin-top: 6px; color: #718096; font-size: 10px;">©Powered by Fee 以上内容仅供参考</p>
         </div>
       </div>
     </body>
