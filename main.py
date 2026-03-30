@@ -376,8 +376,8 @@ def send_email(data_list):
                 </div>
                 <div class="body">{news_html}</div>
                 <div class="footer">
-                    <p style="color: #a0aec0; font-size: 11px; line-height: 1.6;">此邮件由 Python 爬虫自动生成</p>
-                    <p style="margin-top: 6px; color: #718096; font-size: 10px;">© 今日热榜推送服务</p>
+                    <p style="color: #a0aec0; font-size: 11px; line-height: 1.6;">每天7:00、13:00、20:00定时推送</p>
+                    <p style="margin-top: 6px; color: #718096; font-size: 10px;">© 以上内容仅供参考</p>
                 </div>
             </div>
         </body>
