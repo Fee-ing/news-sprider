@@ -11,8 +11,79 @@ import os
 from dotenv import load_dotenv
 from datetime import datetime
 
-url = "https://tophub.today/"
-fliter_keywords = ['微博', '知乎', '百度', '微信', '虎扑社区']
+URL = "https://tophub.today/"
+CONFIG = [
+    {
+        "keyword": "微博",
+        "title": "微博",
+        "sort": 0
+    },
+    {
+        "keyword": "百度",
+        "title": "百度",
+        "sort": 1
+    },
+    {
+        "keyword": "哔哩哔哩",
+        "title": "哔哩哔哩",
+        "sort": 2
+    },
+    {
+        "keyword": "抖音",
+        "title": "抖音",
+        "sort": 3
+    },
+    {
+        "keyword": "快手",
+        "title": "快手",
+        "sort": 4
+    },
+    {
+        "keyword": "腾讯新闻",
+        "title": "腾讯新闻",
+        "sort": 5
+    },
+    {
+        "keyword": "百度贴吧",
+        "title": "贴吧",
+        "sort": 6
+    },
+    {
+        "keyword": "知乎",
+        "title": "知乎",
+        "sort": 7
+    },
+    {
+        "keyword": "微信",
+        "title": "微信",
+        "sort": 8
+    },
+    {
+        "keyword": "掘金",
+        "title": "掘金",
+        "sort": 9
+    },
+    {
+        "keyword": "36氪",
+        "title": "36氪",
+        "sort": 10
+    },
+    {
+        "keyword": "IT之家",
+        "title": "IT之家",
+        "sort": 11
+    },
+    {
+        "keyword": "虎嗅网",
+        "title": "虎嗅网",
+        "sort": 12
+    },
+    # {
+    #     "keyword": "虎扑社区",
+    #     "title": "虎扑社区",
+    #     "sort": 5
+    # }
+]
 
 load_dotenv()
 
@@ -26,33 +97,34 @@ def crawl_data():
     }
     
     try:
-        response = requests.get(url, headers=headers)
+        response = requests.get(URL, headers=headers)
         response.raise_for_status() # 如果状态码不是200，会抛出异常
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # --- 重要：请在这里编写你具体的解析逻辑 ---
         # 示例：获取某个特定元素，如一个新闻列表的第一条新闻
-        # first_news = soup.find('div', class_='news-item').get_text(strip=True) if soup.find('div', class_='news-item') else "暂无新闻"
         result = []
-        fliter_keywords_copy = fliter_keywords.copy()
+        config_copy = CONFIG.copy()
         for block in soup.select('div.bc-cc > div.cc-cd'):
             title = block.select_one('div.cc-cd-ih a div.cc-cd-lb > span').text.strip()
-            if any(keyword == title for keyword in fliter_keywords_copy):
-                list = []
-                for item in block.select('div.cc-cd-cb a'):
-                    list.append({
-                        "url": item['href'],
-                        "content": item.find('span', class_='t').text.strip(),
-                        "views": item.find('span', class_='e').text.strip(),
+            for data in config_copy:
+                if data['keyword'] == title:
+                    list = []
+                    for item in block.select('div.cc-cd-cb a'):
+                        list.append({
+                            "url": item['href'],
+                            "content": item.find('span', class_='t').text.strip(),
+                            "views": item.find('span', class_='e').text.strip(),
+                        })
+                    result.append({
+                        "title": title,
+                        "list": list,
+                        "sort": data['sort']
                     })
-                result.append({
-                    "title": title,
-                    "list": list,
-                })
-                fliter_keywords_copy.remove(title)
-            
-        return result
+                    config_copy.remove(data)
+                    break
+        return sorted(result, key=lambda x: x['sort'])
         
     except requests.exceptions.RequestException as e:
         print(f"网络请求失败: {e}")
@@ -72,267 +144,226 @@ def send_email(data_list):
     crawl_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
     msg = MIMEMultipart('alternative')
-    msg['From'] = formataddr(('今日热榜，请查收', EMAIL_SENDER))
+    msg['From'] = formataddr(('今日热榜', EMAIL_SENDER))
     msg['To'] = formataddr(('社会主义接班人', EMAIL_RECEIVER))
-    msg['Subject'] = Header(f"今日热榜 - {crawl_time}", 'utf-8')
+    msg['Subject'] = Header(f"您有一条新消息，请注意查收", 'utf-8')
 
-    html_content = f"""
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="x-apple-disable-message-reformatting">
-        <meta name="format-detection" content="telephone=no, address=no, email=no, date=no, url=no">
-        <!--[if mso]><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml><![endif]-->
-        <style type="text/css">
-            /* 客户端重置 */
-            * {{ margin: 0; padding: 0; }}
-            body, table, td, a {{ -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }}
-            table, td {{ mso-table-lspace: 0pt; mso-table-rspace: 0pt; }}
-            img {{ -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }}
-            a {{ text-decoration: none; }}
-            
-            /* 主体宽度控制 */
-            html, body {{ 
-                width: 100% !important; 
-                height: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }}
-            
-            /* 确保图片不溢出 */
-            img {{ max-width: 100% !important; height: auto !important; }}
-            
-            /* 滚动容器样式 */
-            .scroll-container {{ 
-                max-height: 450px; 
-                overflow-y: auto; 
-                overflow-x: hidden;
-                -webkit-overflow-scrolling: touch;
-            }}
-            
-            /* 滚动条样式 - Webkit 浏览器 */
-            .scroll-container::-webkit-scrollbar {{ width: 6px; }}
-            .scroll-container::-webkit-scrollbar-track {{ background: #f1f1f1; border-radius: 3px; }}
-            .scroll-container::-webkit-scrollbar-thumb {{ background: #c1c1c1; border-radius: 3px; }}
-            
-            /* 文本截断样式 - 关键修复 */
-            .content-text {{ 
-                display: block; 
-                overflow: hidden; 
-                text-overflow: ellipsis; 
-                white-space: nowrap; 
-                max-width: 100%;
-            }}
-            
-            /* 固定表格布局 - 确保列宽生效 */
-            .item-table {{ 
-                table-layout: fixed !important; 
-                width: 100% !important;
-            }}
-            
-            /* ========== 移动端媒体查询 - 强制覆盖 ========== */
-            @media only screen and (max-width: 600px) {{
-                /* 容器强制全宽 */
-                .container {{ 
-                    width: 100% !important; 
-                    max-width: 100% !important;
-                    min-width: 100% !important;
-                }}
-                /* 内容区域 */
-                .content-padding {{ padding: 15px 10px !important; }}
-                .header-padding {{ padding: 20px 15px !important; }}
-                .footer-padding {{ padding: 15px 12px !important; }}
-                
-                /* 字体大小调整 */
-                .header-title {{ font-size: 18px !important; }}
-                .header-time {{ font-size: 11px !important; }}
-                .topic-title {{ font-size: 15px !important; }}
-                .topic-count {{ font-size: 10px !important; }}
-                .item-content {{ font-size: 13px !important; }}
-                .item-views {{ font-size: 10px !important; }}
-                
-                /* 序号样式 */
-                .item-number {{ 
-                    font-size: 9px !important; 
-                    width: 16px !important; 
-                    height: 16px !important; 
-                    line-height: 16px !important; 
-                }}
-                
-                /* 滚动容器 */
-                .scroll-container {{ max-height: 300px !important; }}
-                
-                /* 卡片样式 */
-                .topic-card {{ 
-                    padding: 10px !important; 
-                    margin-bottom: 10px !important;
-                    width: 100% !important;
-                    box-sizing: border-box !important;
-                }}
-                
-                /* 列宽调整 - 关键修复 */
-                .col-number {{ width: 22px !important; min-width: 22px !important; }}
-                .col-content {{ width: auto !important; }}
-                .col-views {{ width: 60px !important; min-width: 60px !important; }}
-                
-                /* 内容文本强制截断 */
-                .content-text {{ 
-                    max-width: 100% !important; 
-                    width: 100% !important;
-                }}
-            }}
-            
-            /* 小屏幕适配 (iPhone SE 等) */
-            @media only screen and (max-width: 360px) {{
-                .header-title {{ font-size: 16px !important; }}
-                .topic-title {{ font-size: 14px !important; }}
-                .item-content {{ font-size: 12px !important; }}
-                .col-views {{ width: 55px !important; min-width: 55px !important; }}
-                .content-padding {{ padding: 12px 8px !important; }}
-                .col-number {{ width: 20px !important; min-width: 20px !important; }}
-            }}
-        </style>
-    </head>
-    <body style="margin: 0 !important; padding: 0 !important;overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; width: 100% !important;">
-        <!-- 外层表格 - 全宽背景 -->
-        <table width="calc(100% - 21px)" cellpadding="0" cellspacing="0" style="width: calc(100% - 21px) !important;overflow: hidden; margin: 0 auto !important; padding: 0 !important;" role="presentation">
-            <tr>
-                <td class="outer-td" align="center" style="width: 100%;" valign="top">
-                    <!-- 主容器 - 桌面端 600px，移动端 100% -->
-                    <!--[if mso]>
-                    <table width="100%" cellpadding="0" cellspacing="0" style="width: 100%;">
-                    <tr>
-                    <td>
-                    <![endif]-->
-                    <table class="container" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 800px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); overflow: hidden; margin: 0 auto;" role="presentation">
-                    <![endif]-->
-                        
-                        <!-- 头部 -->
-                        <tr>
-                            <td class="header-padding" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 25px 20px; text-align: center;">
-                                <h1 class="header-title" style="margin: 0; color: #ffffff; font-size: 22px; font-weight: 600; letter-spacing: 1px;">📰 今日热榜</h1>
-                                <p class="header-time" style="margin: 8px 0 0 0; color: rgba(255, 255, 255, 0.9); font-size: 12px;">{crawl_time}</p>
-                            </td>
-                        </tr>
-                        
-                        <!-- 内容区域 -->
-                        <tr>
-                            <td class="content-padding" style="padding: 20px 15px;">
-    """
-    
+    news_html = ""
     if data_list:
-        for idx, topic in enumerate(data_list):
-            card_bg = "#f8f9fa" if idx % 2 == 0 else "#ffffff"
-            display_list = topic['list']
-            total_count = len(topic['list'])
-            has_more = total_count > 10
-            
-            html_content += f"""
-                                <!-- 主题卡片 -->
-                                <div class="topic-card" style="background-color: {card_bg}; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid #667eea; overflow: hidden; width: 100%; box-sizing: border-box;">
-                                    <h2 class="topic-title" style="margin: 0 0 10px 0; color: #2d3748; font-size: 17px; font-weight: 600; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-                                        🔥 {topic['title']}
-                                        <span class="topic-count" style="float: right; font-size: 11px; color: #a0aec0; font-weight: 400;">
-                                            共{total_count}条
-                                        </span>
-                                    </h2>
-                                    
-                                    <!-- 滚动容器 -->
-                                    <div class="scroll-container" style="max-height: 450px; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; padding-right: 4px;">
-                                        <table width="100%" cellpadding="0" cellspacing="0" style="width: 100%; table-layout: fixed;" role="presentation">
-            """
-            
-            # 遍历列表项，添加序号（最多 10 条）
-            for item_idx, item in enumerate(display_list, start=1):
-                html_content += f"""
-                                            <tr>
-                                                <td style="padding: 6px 0; border-bottom: 1px solid #f0f0f0;">
-                                                    <table class="item-table" width="100%" cellpadding="0" cellspacing="0" style="width: 100%; table-layout: fixed;" role="presentation">
-                                                        <colgroup>
-                                                            <col width="26" />
-                                                            <col />
-                                                            <col width="75" />
-                                                        </colgroup>
-                                                        <tr>
-                                                            <!-- 第一列：序号（固定宽度） -->
-                                                            <td class="col-number" style="vertical-align: middle; padding-right: 6px; width: 26px; min-width: 26px;">
-                                                                <span class="item-number" style="display: inline-block; width: 20px; height: 20px; line-height: 20px; text-align: center; background-color: #667eea; color: #ffffff; border-radius: 50%; font-size: 11px; font-weight: 600;">
-                                                                    {item_idx}
-                                                                </span>
-                                                            </td>
-                                                            <!-- 第二列：content（占据剩余空间，强制截断） -->
-                                                            <td class="col-content" style="vertical-align: middle; overflow: hidden; width: auto;">
-                                                                <a href="{item['url']}" class="item-content" style="color: #2d3748; text-decoration: none; font-size: 13px; font-weight: 500; line-height: 1.4; display: block; overflow: hidden;">
-                                                                    <span class="content-text" style="display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">{item['content']}</span>
-                                                                </a>
-                                                            </td>
-                                                            <!-- 第三列：views（固定宽度，右对齐） -->
-                                                            <td class="col-views" style="vertical-align: middle; text-align: right; padding-left: 6px; width: 75px; min-width: 75px;">
-                                                                <span class="item-views" style="color: #a0aec0; font-size: 10px; white-space: nowrap; display: block;">
-                                                                    👁️ {item['views']}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    </table>
-                                                </td>
-                                            </tr>
+        for idx, item in enumerate(data_list):
+            list_html = ""
+            for i, list_item in enumerate(item['list']):
+                list_html += f"""
+                <a class="news" href="{list_item['url']}" target="_blank">
+                    <div class="news-sort">{i+1}</div>
+                    <div class="news-title">{list_item['content']}</div>
+                    <div class="news-view">{list_item['views']}</div>
+                </a>
                 """
-            
-            html_content += """
-                                        </table>
-                                    </div>
-            """
-            
-            # 如果有更多内容，添加提示
-            if has_more:
-                html_content += f"""
-                                    <p style="margin: 8px 0 0 0; text-align: center; color: #a0aec0; font-size: 11px;">
-                                        ⋯ 还有 {total_count - 10} 条内容，向上滑动查看 ⋯
-                                    </p>
-                """
-            
-            html_content += """
-                                </div>
-            """
-    else:
-        html_content += """
-                                <div style="text-align: center; padding: 40px 15px; background-color: #f8f9fa; border-radius: 8px; width: 100%; box-sizing: border-box;">
-                                    <p style="margin: 0; color: #718096; font-size: 15px;">😔 未获取到有效数据</p>
-                                    <p style="margin: 8px 0 0 0; color: #a0aec0; font-size: 12px;">请稍后重试</p>
-                                </div>
-        """
 
-    html_content += f"""
-                            </td>
-                        </tr>
-                        
-                        <!-- 底部 -->
-                        <tr>
-                            <td class="footer-padding" style="background-color: #2d3748; padding: 18px 20px; text-align: center;">
-                                <p style="margin: 0; color: #a0aec0; font-size: 11px; line-height: 1.6;">
-                                    此邮件由 Python 爬虫自动生成 · 数据来源：<a href="{url}" style="color: #667eea; text-decoration: none;">tophub.today</a>
-                                </p>
-                                <p style="margin: 6px 0 0 0; color: #718096; font-size: 10px;">
-                                    © {datetime.now().strftime('%Y')} 今日热榜推送服务
-                                </p>
-                            </td>
-                        </tr>
-                    </table>
-                    <!--[if mso]>
-                    </td>
-                    </tr>
-                    </table>
-                    <![endif]-->
-                </td>
-            </tr>
-        </table>
-    </body>
+            news_html += f"""
+            <div class="block">
+                <input type="radio" name="tab" id="tab-{idx+1}"" {"checked" if idx == 0 else ""}>
+                <label class="tab-button" for="tab-{idx+1}">🔥 {item['title']}</label>
+                <div class="content">
+                    <div class="list">
+                        {list_html}
+                    </div>
+                </div>
+            </div>
+            """
+
+
+    page_html = f"""
+    <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>今日热榜</title>
+            <style type="text/css">
+                * {{ margin: 0; padding: 0;box-sizing: border-box; }}
+                /* 滚动条样式 - Webkit 浏览器 */
+                ::-webkit-scrollbar {{ width: 6px; }}
+                ::-webkit-scrollbar-track {{ background: #ffffff; border-radius: 3px; }}
+                ::-webkit-scrollbar-thumb {{ background: #f1f5f9; border-radius: 3px; }}
+                html, body {{ width: 100%; height: 100%; overflow: hidden; }}
+                body {{ overflow-y: auto; }}
+                .app {{ margin: 0 auto;max-width: 1000px; }}
+                .header {{
+                    width: calc(100% - 20px);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    flex-direction: column;
+                    padding: 10px;
+                    border-radius: 12px;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }}
+                .footer {{
+                    width: calc(100% - 20px);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    flex-direction: column;
+                    padding: 18px 0;
+                    margin-top: 20px;
+                    border-radius: 12px;
+                    background-color: #2d3748;
+                }}
+                .body {{
+                    margin-top: 20px;
+                    position: relative;
+                    width: calc(100% - 20px);
+                }}
+                .block {{
+                    width: 180px;
+                    background-color: #f1f5f9;
+                    padding: 0 15px 10px;
+                }}
+                .block:first-child {{
+                    padding-top: 20px;
+                    border-radius: 12px 12px 0 0;
+                }}
+                .block:last-child {{
+                    padding-bottom: 20px;
+                    border-radius: 0 0 12px 12px;
+                }}
+                .block input {{
+                    display: none;
+                }}
+                .tab-button {{
+                    display: flex;
+                    align-items: center;
+                    padding: 12px 20px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    color: #667eea;
+                    background-color: rgba(102, 126, 234, 0.15);
+                    border-radius: 8px;
+                    cursor: pointer;
+                    transition: background-color 0.3s, color 0.3s;
+                }}
+                .content {{
+                    position: absolute;
+                    display: none;
+                    width: calc(100% - 200px);
+                    height: 100%;
+                    background-color: #ffffff;
+                    border-radius: 12px;
+                    margin-left: 20px;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                    overflow: hidden;
+                    top: 0;
+                    right: 0;
+                    padding: 20px;
+                }}
+                .list {{
+                    height: 100%;
+                    overflow-y: auto;
+                    padding-right: 6px;
+                }}
+                [id^="tab"]:checked~label {{
+                    background-color: #667eea;
+                    color: #ffffff;
+                }}
+                [id^="tab"]:checked~.content {{
+                    display: block;
+                }}
+                .news {{
+                    display: flex;
+                    align-items: center;
+                    line-height: 1;
+                    text-decoration: none;
+                    color: #2d3748;
+                    font-size: 13px;
+                    overflow: hidden;
+                }}
+                .news:not(:last-child) {{
+                    margin-bottom: 15px;
+                }}
+                .news-sort {{
+                    width: 22px;
+                    height: 22px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    background-color: #667eea;
+                    color: #ffffff;
+                    border-radius: 50%;
+                    font-size: 12px;
+                    font-weight: 600;
+                }}
+                .news-title {{
+                    flex: 1;
+                    font-weight: 500;
+                    line-height: 1.4;
+                    margin-left: 10px;
+                }}
+                .news-view {{
+                    margin-left: 10px;
+                    color: #94a3b8;
+                    font-size: 11px;
+                    text-align: right;
+                }}
+                /* 移动端适配 */
+                @media only screen and (max-width: 768px) {{
+                    .body {{
+                        margin-top: 10px;
+                    }}
+                    .footer {{
+                        margin-top: 10px;
+                    }}
+                    .block {{
+                        padding: 0 5px 10px;
+                        width: 100px;
+                    }}
+                    .block:first-child {{
+                        padding-top: 10px;
+                    }}
+                    .block:last-child {{
+                        padding-bottom: 10px;
+                    }}
+                    .content {{
+                        margin-left: 10px;
+                        width: calc(100% - 110px);
+                        padding: 10px 5px;
+                    }}
+                    .tab-button {{
+                        padding: 10px 5px;
+                        font-size: 11px;
+                    }}
+                    .news-sort {{
+                        width: 18px;
+                        height: 18px;
+                        font-size: 10px;
+                    }}
+                    .news-title {{
+                        font-size: 12px;
+                    }}
+                    .news-view {{
+                        font-size: 10px;
+                    }}
+                }}
+            </style>
+        </head>
+        <body>
+            <div class="app"> 
+                <div class="header">
+                    <h1 style="color: #ffffff; font-size: 24px;">📰 今日热榜</h1>
+                    <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-top: 8px;">{crawl_time}</p>
+                </div>
+                <div class="body">{news_html}</div>
+                <div class="footer">
+                    <p style="color: #a0aec0; font-size: 11px; line-height: 1.6;">此邮件由 Python 爬虫自动生成</p>
+                    <p style="margin-top: 6px; color: #718096; font-size: 10px;">© 今日热榜推送服务</p>
+                </div>
+            </div>
+        </body>
     </html>
     """
 
-    msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+    msg.attach(MIMEText(page_html, 'html', 'utf-8'))
 
     # 发送邮件
     try:

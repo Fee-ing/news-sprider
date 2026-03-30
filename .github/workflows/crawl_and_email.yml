@@ -3,15 +3,9 @@
 name: 自动爬虫并发送邮件
 
 on:
-  schedule:
-    # 北京时间 9:00, 12:00, 18:00
-    - cron: '0 1 * * *'
-    - cron: '0 4 * * *'
-    - cron: '0 10 * * *'
-  workflow_dispatch:  # 允许手动触发
-
-permissions:
-  contents: read
+  repository_dispatch:
+    types: [trigger-crawl]
+  workflow_dispatch:
 
 jobs:
   build:
