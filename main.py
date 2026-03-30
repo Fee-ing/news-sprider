@@ -183,7 +183,20 @@ def send_email(data_list):
             <title>今日热榜</title>
             <style type="text/css">
                 * {{ margin: 0; padding: 0;box-sizing: border-box; }}
-                /* 滚动条样式 - Webkit 浏览器 */
+                a {
+                    text-decoration: none;
+                    outline: none;
+                    -webkit-tap-highlight-color: transparent;
+                }
+                a:link,
+                a:visited,
+                a:hover,
+                a:active,
+                a:focus {
+                    outline: 0;
+                    background-color: transparent;
+                    text-decoration: none;
+                }
                 ::-webkit-scrollbar {{ width: 6px; }}
                 ::-webkit-scrollbar-track {{ background: #ffffff; border-radius: 3px; }}
                 ::-webkit-scrollbar-thumb {{ background: #f1f5f9; border-radius: 3px; }}
