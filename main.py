@@ -103,7 +103,7 @@ def send_email(data_list):
   msg = MIMEMultipart("alternative")
   msg["From"] = formataddr(("今日新闻热榜", EMAIL_SENDER))
   msg["To"] = ", ".join(EMAIL_RECEIVER_LIST)
-  msg["Subject"] = Header(f"千万别错过，快点来看看今天有哪些大事发生了吧", "utf-8")
+  msg["Subject"] = Header(f"快点来看看今天有哪些大事发生了吧", "utf-8")
 
   news_html = ""
   tag_html = ""
