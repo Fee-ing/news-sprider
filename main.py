@@ -15,17 +15,17 @@ URL = "https://tophub.today/"
 CONFIG = [
   {"keyword": "微博", "title": "微博", "sort": 0},
   {"keyword": "百度", "title": "百度", "sort": 1},
-  {"keyword": "哔哩哔哩", "title": "哔哩哔哩", "sort": 2},
+  {"keyword": "哔哩哔哩", "title": "B站", "sort": 2},
   {"keyword": "抖音", "title": "抖音", "sort": 3},
   {"keyword": "快手", "title": "快手", "sort": 4},
-  {"keyword": "腾讯新闻", "title": "腾讯新闻", "sort": 5},
+  {"keyword": "腾讯新闻", "title": "腾讯", "sort": 5},
   {"keyword": "百度贴吧", "title": "贴吧", "sort": 6},
   {"keyword": "知乎", "title": "知乎", "sort": 7},
   {"keyword": "微信", "title": "微信", "sort": 8},
   {"keyword": "掘金", "title": "掘金", "sort": 9},
   {"keyword": "36氪", "title": "36氪", "sort": 10},
   {"keyword": "IT之家", "title": "IT之家", "sort": 11},
-  {"keyword": "虎嗅网", "title": "虎嗅网", "sort": 12},
+  {"keyword": "虎嗅网", "title": "虎嗅", "sort": 12},
   # {
   #   "keyword": "虎扑社区",
   #   "title": "虎扑社区",
@@ -68,7 +68,7 @@ def crawl_data():
                 "views": item.find("span", class_="e").text.strip(),
               }
             )
-          result.append({"title": title, "list": list, "sort": data["sort"]})
+          result.append({"title": data["title"], "list": list, "sort": data["sort"]})
           config_copy.remove(data)
           break
     return sorted(result, key=lambda x: x["sort"])
@@ -99,17 +99,20 @@ def send_email(data_list):
 
   smtp_server = "smtp.qq.com"
   smtp_port = 465
-  crawl_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
   msg = MIMEMultipart("alternative")
   msg["From"] = formataddr(("今日新闻热榜", EMAIL_SENDER))
   msg["To"] = ", ".join(EMAIL_RECEIVER_LIST)
-  msg["Subject"] = Header(f"快点来看看今天有哪些大事发生了吧", "utf-8")
+  msg["Subject"] = Header(f"千万别错过，快点来看看今天有哪些大事发生了吧", "utf-8")
 
   news_html = ""
+  tag_html = ""
   if data_list:
     for idx, item in enumerate(data_list):
       list_html = ""
+      tag_html += f"""
+      <a class="header-tag">{item['title']}</a>
+      """
       for i, list_item in enumerate(item["list"]):
         list_html += f"""
         <a class="news" href="{list_item['url']}" target="_blank">
@@ -120,7 +123,7 @@ def send_email(data_list):
         """
 
       news_html += f"""
-      <div class="block">
+      <div class="block" id="tag-{idx+1}">
         <input type="radio" name="tab" id="tab-{idx+1}"" {"checked" if idx == 0 else ""}>
         <label class="tab-button" for="tab-{idx+1}">
           <div class="button-text">🔥 {item['title']}</div>
@@ -159,20 +162,18 @@ def send_email(data_list):
         ::-webkit-scrollbar-track {{ background: #ffffff; border-radius: 3px; }}
         ::-webkit-scrollbar-thumb {{ background: #f1f5f9; border-radius: 3px; }}
         html, body {{ width: 100%; height: 100%; overflow: hidden; }}
-        body {{ overflow-y: auto; }}
+        body {{ overflow-y: auto;scroll-behavior: smooth; }}
         .app {{ margin: 0 auto;max-width: 1000px; }}
         .header {{
-          width: calc(100% - 20px);
           display: flex;
           justify-content: center;
           align-items: center;
           flex-direction: column;
-          padding: 10px;
           border-radius: 12px;
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          padding: 10px 0 15px;
         }}
         .footer {{
-          width: calc(100% - 20px);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -185,7 +186,6 @@ def send_email(data_list):
         .body {{
           margin-top: 20px;
           position: relative;
-          width: calc(100% - 20px);
         }}
         .block input {{
           display: none;
@@ -254,8 +254,25 @@ def send_email(data_list):
         .news:not(:last-child) {{
           margin: 0;
         }}
+        .tag-list {{
+          display: flex;
+          align-items: center;
+          font-size: 13px;
+          margin-top: 8px;
+        }}
+        .header-tag {{
+          padding: 0 10px;
+          color: rgba(255, 255, 255, 0.9);
+          text-decoration: none;
+        }}
+        .header-tag:not(:last-child) {{
+          border-right: 1px solid rgba(255, 255, 255, 0.5);
+        }}
         /* 移动端适配 */
         @media only screen and (max-width: 768px) {{
+          .header, .body, .footer {{
+            width: calc(100% - 14px);
+          }}
           .body {{
             margin-top: 10px;
           }}
@@ -340,6 +357,12 @@ def send_email(data_list):
           .news-view {{
             font-size: 10px;
           }}
+          .tag-list {{
+            font-size: 9px;
+          }}
+          .header-tag {{
+            padding: 0 5px;
+          }}
         }}
       </style>
     </head>
@@ -347,7 +370,7 @@ def send_email(data_list):
       <div class="app"> 
         <div class="header">
           <h1 style="color: #ffffff; font-size: 24px;">📰 今日新闻热榜</h1>
-          <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-top: 8px;">{crawl_time}</p>
+          <div class="tag-list">{tag_html}</div>
         </div>
         <div class="body">{news_html}</div>
         <div class="footer">
