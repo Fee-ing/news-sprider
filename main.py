@@ -270,8 +270,8 @@ def send_email(data_list):
         }}
         /* 移动端适配 */
         @media only screen and (max-width: 768px) {{
-          .header, .body, .footer {{
-            width: calc(100% - 14px);
+          .app {{
+            width: calc(100% - 20px);
           }}
           .body {{
             margin-top: 10px;
