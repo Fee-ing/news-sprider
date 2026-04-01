@@ -1,6 +1,6 @@
 # .github/workflows/crawl_and_email.yml
 
-name: 自动爬虫并发送邮件
+name: 今日热榜
 
 on:
   repository_dispatch:
